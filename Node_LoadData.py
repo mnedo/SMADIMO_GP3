@@ -2,6 +2,14 @@ import os
 import json
 import pandas as pd
 
+'''
+Принимает json: file_paths (список путей к Excel-файлам)
+Возвращает json: status, dataset_path (путь к объединенному файлу), metadata_path (путь к метаданным), rows, cols, columns, duplicate_rows_after_concat
+
+Загружает один или несколько Excel-файлов, объединяет их по строкам
+и сохраняет общий датасет для следующих нод
+'''
+
 ARTIFACT_DIR = "artifacts"
 os.makedirs(ARTIFACT_DIR, exist_ok=True)
 
