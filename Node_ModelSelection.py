@@ -1,7 +1,9 @@
 import json
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_core.messages import HumanMessage, SystemMessage
+
 key = open('api_key').readline()
+
 
 def model_selection(input_str: str, llm=None) -> dict:
     '''
