@@ -1,4 +1,5 @@
-langchain_google_genai
+langchain-google-genai
+langchain
 pandas
 numpy
 scikit-learn
