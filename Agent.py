@@ -22,12 +22,6 @@ llm = ChatGoogleGenerativeAI(
 from langchain.tools import Tool
 tools = []
 
-# Нод импорт пример
-from Node_Test import func_test # если бы это была ваша часть: создаем Node_Test.py с функцией func_test https://github.com/mnedo/SMADIMO_GP3/tree/draft
-tools.append(Tool(
-    name="func_test",
-    func=func_test,
-    description="описание"))
 
 # Ноды Role C
 from Node_LoadData import load_data
@@ -95,6 +89,7 @@ tools.append(Tool(
 
 
 # Ноды Role F
+'''
 from Node_Memory import save_best_model, load_previous_best, compare_with_previous
 tools.append(Tool(
     name="save_best_model",
@@ -117,7 +112,10 @@ tools.append(Tool(
 
 
 
+'''
 
+ARTIFACT_DIR = "artifacts"
+os.makedirs(ARTIFACT_DIR, exist_ok=True) # ?
 # ----------------------------------------------------------------------------#
 memory = ConversationBufferMemory(memory_key="chat_history")
 SYSTEM_PROMT = ''
