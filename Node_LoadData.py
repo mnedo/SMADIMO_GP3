@@ -1,1 +1,65 @@
-# пример  https://github.com/mnedo/SMADIMO_GP3/tree/draft/Node_test.py
+import os
+import json
+import pandas as pd
+
+ARTIFACT_DIR = "artifacts"
+os.makedirs(ARTIFACT_DIR, exist_ok=True)
+
+
+def load_data(input_str):
+    try:
+        data = json.loads(input_str)
+        file_paths = data.get("file_paths", [])
+
+        if not file_paths:
+            return {
+                "status": "error",
+                "error": "Не передан список file_paths",
+                "message": "load_data завершилась с ошибкой"
+            }
+
+        dfs = []
+
+        for path in file_paths:
+            if not os.path.exists(path):
+                return {
+                    "status": "error",
+                    "error": f"Файл не найден: {path}",
+                    "message": "load_data завершилась с ошибкой"
+                }
+
+            df_part = pd.read_excel(path)
+            dfs.append(df_part)
+
+        df = pd.concat(dfs, ignore_index=True)
+
+        dataset_path = os.path.join(ARTIFACT_DIR, "loaded_dataset.xlsx")
+        metadata_path = os.path.join(ARTIFACT_DIR, "load_metadata.json")
+
+        df.to_excel(dataset_path, index=False)
+
+        result = {
+            "status": "ok",
+            "error": None,
+            "message": "Данные успешно загружены и объединены",
+            "source_files_count": len(file_paths),
+            "source_paths": file_paths,
+            "dataset_path": dataset_path,
+            "metadata_path": metadata_path,
+            "rows": int(df.shape[0]),
+            "cols": int(df.shape[1]),
+            "columns": df.columns.tolist(),
+            "duplicate_rows_after_concat": int(df.duplicated().sum())
+        }
+
+        with open(metadata_path, "w", encoding="utf-8") as f:
+            json.dump(result, f, ensure_ascii=False, indent=2)
+
+        return result
+
+    except Exception as e:
+        return {
+            "status": "error",
+            "error": str(e),
+            "message": "load_data завершилась с ошибкой"
+        }
