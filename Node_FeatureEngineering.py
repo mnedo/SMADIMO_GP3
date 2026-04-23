@@ -1,8 +1,7 @@
 import json
 import pandas as pd
-from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_core.messages import HumanMessage, SystemMessage
-key = open('api_key').readline()
+
 
 def feature_engineering(input_str: str, llm=None) -> dict:
     '''
@@ -19,7 +18,10 @@ def feature_engineering(input_str: str, llm=None) -> dict:
         context = params.get('context', '')
 
         if llm is None:
-            llm = ChatGoogleGenerativeAI(model='gemini-2.5-flash', temperature=0.3, google_api_key=key)
+            return {
+                "status": "error",
+                "error": "LLM не передан в feature_engineering"
+            }
 
         response = llm.invoke([
             SystemMessage(

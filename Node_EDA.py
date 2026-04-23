@@ -5,6 +5,9 @@ import pandas as pd
 '''
 Принимает json: dataset_path (путь к объединенному Excel-файлу)
 Возвращает json: status, eda_report_path (путь к EDA-отчету), eda_report (словарь с результатами EDA), feature_type_counts
+ 
+ARTIFACT_DIR = "artifacts"
+os.makedirs(ARTIFACT_DIR, exist_ok=True)
 
 Выполняет базовый EDA по датасету: определяет числовые, категориальные и текстовые колонки,
 считает пропуски, дубликаты и константные признаки, сохраняет отчет для следующих нод

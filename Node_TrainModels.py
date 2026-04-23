@@ -1,12 +1,10 @@
 import json
 import pandas as pd
-from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_core.messages import HumanMessage, SystemMessage
 from sklearn.linear_model import Ridge, Lasso
 from sklearn.ensemble import RandomForestRegressor, GradientBoostingRegressor
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import mean_absolute_error, r2_score
-key = open('api_key').readline()
 
 def train_models(input_str: str, llm=None) -> dict:
     '''
@@ -22,7 +20,10 @@ def train_models(input_str: str, llm=None) -> dict:
         context = params.get('context', '')
 
         if llm is None:
-            llm = ChatGoogleGenerativeAI(model='gemini-2.5-flash', temperature=0.3, google_api_key=key)
+            return {
+                "status": "error",
+                "error": "LLM не передан в train_models"
+            }
 
         recommended_models = params['recommended_models']
 

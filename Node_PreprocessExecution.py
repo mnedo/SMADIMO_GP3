@@ -8,7 +8,7 @@ os.makedirs(ARTIFACT_DIR, exist_ok=True)
 
 
 def preprocess_execution(input_data):
-      """
+    """
     Принимает json: dataset_path (путь к файлу датасета), preprocess_plan (план предобработки от предыдущей ноды)
     Возвращает json: status, preprocessed_dataset_path, final_shape, applied_actions
 
@@ -25,12 +25,12 @@ def preprocess_execution(input_data):
 
         df = pd.read_csv(dataset_path) if dataset_path.endswith(".csv") else pd.read_excel(dataset_path)
 
-        a = []
+        actions = []
         target_col = "Цена"
         if target_col in df.columns:
             before = len(df)
             df = df.dropna(subset=[target_col])
-            a.append(f"Удалено строк с пустой ценой: {before - len(df)}")
+            actions.append(f"Удалено строк с пустой ценой: {before - len(df)}")
 
         cols_to_drop = [
             item["column"]
@@ -38,12 +38,12 @@ def preprocess_execution(input_data):
         ]
         if cols_to_drop:
             df = df.drop(columns=cols_to_drop)
-            a.append(f"Удалены колонки: {cols_to_drop}")
+            actions.append(f"Удалены колонки: {cols_to_drop}")
 
         if preprocess_plan.get("drop_duplicates"):
             before = len(df)
             df = df.drop_duplicates()
-            a.append(f"Удалено дубликатов: {before - len(df)}")
+            actions.append(f"Удалено дубликатов: {before - len(df)}")
 
         for i, j in preprocess_plan.get("special_preprocessing", {}).items():
             if i not in df.columns:
@@ -54,13 +54,13 @@ def preprocess_execution(input_data):
             elif j == "normalize_size_format":
                 df[i] = df[i].astype(str).str.strip().str.replace(" ", "_")
                 df.loc[df[i] == "", i] = np.nan
-            a.append(f"{i}: {j}")
+            actions.append(f"{i}: {j}")
 
         for i, j in preprocess_plan.get("fill_missing", {}).items():
             if i not in df.columns:
-              continue
+                continue
             if i == target_col:
-              continue
+                continue
 
             if j == "missing_label":
                 df[i] = df[i].fillna("missing_label")
@@ -78,7 +78,7 @@ def preprocess_execution(input_data):
                 df[i] = df[i].fillna(df[i].mean())
             elif j == "none":
                 pass
-            a.append(f"{i}: fill_missing -> {j}")
+            actions.append(f"{i}: fill_missing -> {j}")
 
         for i, j in preprocess_plan.get("outlier_actions", {}).items():
             if i not in df.columns:
@@ -92,28 +92,28 @@ def preprocess_execution(input_data):
                 lower = q1 - 1.5 * iqr
                 upper = q3 + 1.5 * iqr
                 df[i] = df[i].clip(lower=lower, upper=upper)
-                a.append(f"{i}: outlier_actions -> clip_iqr")
+                actions.append(f"{i}: outlier_actions -> clip_iqr")
             elif j == "winsorize_p01_p99":
                 lower = df[i].quantile(0.01)
                 upper = df[i].quantile(0.99)
                 df[i] = df[i].clip(lower=lower, upper=upper)
-                a.append(f"{i}: outlier_actions -> winsorize_p01_p99")
+                actions.append(f"{i}: outlier_actions -> winsorize_p01_p99")
             elif j == "none":
-                a.append(f"{i}: outlier_actions -> none")
+                actions.append(f"{i}: outlier_actions -> none")
 
         for i, j in preprocess_plan.get("categorical_handling", {}).items():
             if i in df.columns and j == "drop" and i != "Цена":
                 df = df.drop(columns=[i])
-                a.append(f"{i}: drop")
+                actions.append(f"{i}: drop")
         for i, j in preprocess_plan.get("text_processing", {}).items():
             if i not in df.columns:
                 continue
             if j == "drop":
                 df = df.drop(columns=[i])
-                a.append(f"{i}: text drop")
+                actions.append(f"{i}: text drop")
             elif j == "basic_clean":
-              df[i] = (df[i].astype(str).str.lower().str.strip().apply(lambda x: " ".join(x.split())))
-              a.append(f"{i}: basic_clean")
+                df[i] = (df[i].astype(str).str.lower().str.strip().apply(lambda x: " ".join(x.split())))
+                actions.append(f"{i}: basic_clean")
             elif j == "keep":
                 pass
 
@@ -124,7 +124,7 @@ def preprocess_execution(input_data):
             "status": "success",
             "preprocessed_dataset_path": output_path,
             "final_shape": {"rows": int(df.shape[0]), "cols": int(df.shape[1])},
-            "applied_actions": a
+            "applied_actions": actions
         }
 
     except Exception as e:

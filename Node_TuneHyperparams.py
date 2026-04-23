@@ -4,10 +4,7 @@ import pandas as pd
 from sklearn.linear_model import Ridge, Lasso
 from sklearn.ensemble import RandomForestRegressor, GradientBoostingRegressor
 from sklearn.model_selection import train_test_split
-from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_core.messages import HumanMessage, SystemMessage
-
-key = open('api_key').readline()
 
 def tune_hyperparams(input_str: str, llm=None) -> dict:
     '''
@@ -23,7 +20,10 @@ def tune_hyperparams(input_str: str, llm=None) -> dict:
         context = params.get('context', '')
 
         if llm is None:
-            llm = ChatGoogleGenerativeAI(model='gemini-2.5-flash', temperature=0.3, google_api_key=key)
+            return {
+                "status": "error",
+                "error": "LLM не передан в tune_hyperparams"
+            }
 
         df = pd.read_csv(path)
         X = df.drop(columns=['Цена']).select_dtypes(include='number')
@@ -57,12 +57,3 @@ def tune_hyperparams(input_str: str, llm=None) -> dict:
             'status': 'error',
             'error': str(e)
         }
-
-test_input = json.dumps({
-    'dataset_path': 'all_items800_fe_clean.csv',
-    'best_model': 'RandomForestRegressor',
-    'metrics': {'RandomForestRegressor': {'mae': 11718.5, 'r2': 0.802}},
-    'context': 'Датасет товаров Oskelly. Задача: регрессия, предсказываем Цену. Лучшая модель: RandomForestRegressor.'
-})
-
-print(tune_hyperparams(test_input))

@@ -76,15 +76,3 @@ def func_test(input_str: str) -> dict[str, Any]:
             "parsed": None,
             "message": "func_test завершилась с ошибкой"
         }
-
-
-# --- Локальный тест, чтобы роль могла проверить функцию без запуска всего агента ---
-if __name__ == "__main__":
-    # Простая строка
-    print(func_test("hello world"))
-
-    # JSON-строка
-    print(func_test('{"dataset_path": "data/raw/sample.csv", "n_rows": 100}'))
-
-    # Некорректный ввод (всё равно не падаем)
-    print(func_test(""))
