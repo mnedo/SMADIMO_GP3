@@ -14,7 +14,15 @@ def tune_hyperparams(input_str: str, llm=None) -> dict:
     Подбирает оптимальные гиперпараметры для лучшей модели с помощью Optuna
     '''
     try:
-        params = json.loads(input_str)
+        if isinstance(input_str, str):
+            params = json.loads(input_str)
+        elif isinstance(input_str, dict):
+            params = input_str
+        else:
+            return {
+                "status": "error",
+                "error": "Неподдерживаемый тип входа для tune_hyperparams"
+            }
         path = params['dataset_path']
         best_model_name = params['best_model']
         context = params.get('context', '')

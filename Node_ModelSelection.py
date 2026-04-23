@@ -10,7 +10,15 @@ def model_selection(input_str: str, llm=None) -> dict:
     На основе характеристик задачи предлагает список релевантных моделей для обучения с обоснованием
     '''
     try:
-        params = json.loads(input_str)
+        if isinstance(input_str, str):
+            params = json.loads(input_str)
+        elif isinstance(input_str, dict):
+            params = input_str
+        else:
+            return {
+                "status": "error",
+                "error": "Неподдерживаемый тип входа для model_selection"
+            }
         path = params['dataset_path']
 
         context = params.get('context', '')

@@ -14,7 +14,15 @@ def train_models(input_str: str, llm=None) -> dict:
     Обучает переданный список моделей на train-выборке и оценивает на test-выборке, возвращает метрики по моделям и указывает лучшую модель
     '''
     try:
-        params = json.loads(input_str)
+        if isinstance(input_str, str):
+            params = json.loads(input_str)
+        elif isinstance(input_str, dict):
+            params = input_str
+        else:
+            return {
+                "status": "error",
+                "error": "Неподдерживаемый тип входа для train_models"
+            }
         path = params['dataset_path']
 
         context = params.get('context', '')

@@ -4,16 +4,20 @@ import os
 from langchain.agents import create_agent
 from langchain_core.tools import Tool
 from langchain_google_genai import ChatGoogleGenerativeAI
+from langchain_groq import ChatGroq
 
-MODEL_NAME = "gemini-2.5-flash"
+model_i = 0
+MODEL_NAME = ["gemini-2.5-flash", "openai/gpt-oss-120b"][model_i]
 with open("config.json", encoding="utf-8") as f:
     api_key = json.load(f)["llm"][MODEL_NAME]
 
-llm = ChatGoogleGenerativeAI(
-    model=MODEL_NAME,
-    temperature=0.3,
-    google_api_key=api_key,
-)
+if model_i == 0:
+    llm = ChatGoogleGenerativeAI(
+        model=MODEL_NAME,
+        temperature=0.3,
+        google_api_key=api_key,
+    )
+
 
 tools = []
 
@@ -123,10 +127,9 @@ SYSTEM_PROMPT = """
 - Ничего не выдумывай про данные: сначала загрузи датасет, затем сделай EDA, затем предобработку.
 - Если входные параметры для инструмента нужны структурированные — передавай их как JSON-строку.
 """.strip()
-agent = create_agent(model=llm, tools=tools, system_prompt=SYSTEM_PROMPT)
-
-
 if __name__ == "__main__":
+    agent = create_agent(model=llm, tools=tools, system_prompt=SYSTEM_PROMPT)
+
     dataset_path = os.path.abspath("dataset.xlsx")
     if not os.path.exists(dataset_path):
         raise FileNotFoundError(

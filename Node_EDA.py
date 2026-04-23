@@ -2,20 +2,28 @@ import os
 import json
 import pandas as pd
 
-'''
-Принимает json: dataset_path (путь к объединенному Excel-файлу)
-Возвращает json: status, eda_report_path (путь к EDA-отчету), eda_report (словарь с результатами EDA), feature_type_counts
- 
 ARTIFACT_DIR = "artifacts"
 os.makedirs(ARTIFACT_DIR, exist_ok=True)
 
-Выполняет базовый EDA по датасету: определяет числовые, категориальные и текстовые колонки,
-считает пропуски, дубликаты и константные признаки, сохраняет отчет для следующих нод
-'''
-
 def run_eda(input_str):
+    """
+    Принимает json: dataset_path (путь к объединенному Excel-файлу)
+    Возвращает json: status, eda_report_path, eda_report, feature_type_counts
+
+    Выполняет базовый EDA по датасету: определяет числовые, категориальные и
+    текстовые колонки, считает пропуски, дубликаты и константные признаки.
+    """
     try:
-        data = json.loads(input_str)
+        if isinstance(input_str, str):
+            data = json.loads(input_str)
+        elif isinstance(input_str, dict):
+            data = input_str
+        else:
+            return {
+                "status": "error",
+                "error": "Неподдерживаемый тип входа для run_eda",
+                "message": "run_eda завершилась с ошибкой"
+            }
         dataset_path = data.get("dataset_path")
 
         if not dataset_path:

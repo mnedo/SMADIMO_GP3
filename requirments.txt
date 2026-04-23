@@ -1,4 +1,6 @@
 langchain-google-genai
+langchain-groq
+openpyxl
 langchain
 pandas
 numpy

@@ -11,7 +11,16 @@ def preprocess_decision(input_data, llm):
     """
 
     try:
-        data = json.loads(input_data)
+        if isinstance(input_data, str):
+            data = json.loads(input_data)
+        elif isinstance(input_data, dict):
+            data = input_data
+        else:
+            return json.dumps(
+                {"status": "error", "message": "Неподдерживаемый тип входа для preprocess_decision"},
+                ensure_ascii=False,
+                indent=2
+            )
         eda_report = data["eda_report"]
 
         prompt = f"""

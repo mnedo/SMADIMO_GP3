@@ -16,7 +16,19 @@ os.makedirs(ARTIFACT_DIR, exist_ok=True)
 
 def load_data(input_str):
     try:
-        data = json.loads(input_str)
+        if isinstance(input_str, str):
+            data = json.loads(input_str)
+        elif isinstance(input_str, dict):
+            data = input_str
+        elif isinstance(input_str, list):
+            data = {"file_paths": input_str}
+        else:
+            return {
+                "status": "error",
+                "error": "Неподдерживаемый тип входа для load_data",
+                "message": "load_data завершилась с ошибкой"
+            }
+
         file_paths = data.get("file_paths", [])
 
         if not file_paths:

@@ -11,7 +11,15 @@ def feature_engineering(input_str: str, llm=None) -> dict:
     Создает новые признаки в датасете на основе существующих
     '''
     try:
-        params = json.loads(input_str)
+        if isinstance(input_str, str):
+            params = json.loads(input_str)
+        elif isinstance(input_str, dict):
+            params = input_str
+        else:
+            return {
+                "status": "error",
+                "error": "Неподдерживаемый тип входа для feature_engineering"
+            }
         path = params['dataset_path']
         df = pd.read_excel(path)
 
