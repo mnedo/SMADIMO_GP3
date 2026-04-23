@@ -3,11 +3,11 @@ import json
 import pandas as pd
 
 '''
-Принимает json: file_paths (список путей к Excel-файлам)
-Возвращает json: status, dataset_path (путь к объединенному файлу), metadata_path (путь к метаданным), rows, cols, columns, duplicate_rows_after_concat
+Принимает json: dataset_path (путь к объединенному Excel-файлу)
+Возвращает json: status, eda_report_path (путь к EDA-отчету), eda_report (словарь с результатами EDA), feature_type_counts
 
-Загружает один или несколько Excel-файлов, объединяет их по строкам
-и сохраняет общий датасет для следующих нод
+Выполняет базовый EDA по датасету: определяет числовые, категориальные и текстовые колонки,
+считает пропуски, дубликаты и константные признаки, сохраняет отчет для следующих нод
 '''
 
 def run_eda(input_str):
