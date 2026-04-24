@@ -3,21 +3,25 @@ import os
 
 from langchain.agents import create_agent
 from langchain_core.tools import Tool
-from langchain_google_genai import ChatGoogleGenerativeAI
-from langchain_groq import ChatGroq
+from langchain_openai import ChatOpenAI
 
-model_i = 0
-MODEL_NAME = ["gemini-2.5-flash", "openai/gpt-oss-120b"][model_i]
+model_i = 0 # для теста - 0, она дешевая
+MODEL_NAME = [
+    "deepseek/deepseek-chat-v3-0324",
+    "anthropic/claude-opus-4.7", # based on SWE-Benchmark-2026
+    "google/gemini-3.1-pro-preview", # based on SWE-Benchmark-2026
+    "moonshotai/kimi-k2-thinking" # based on SWE-Benchmark-2026
+][model_i]
 with open("config.json", encoding="utf-8") as f:
-    api_key = json.load(f)["llm"][MODEL_NAME]
+    api_key = json.load(f)["llm"]['openrouter']
 
-if model_i == 0:
-    llm = ChatGoogleGenerativeAI(
-        model=MODEL_NAME,
-        temperature=0.3,
-        google_api_key=api_key,
-    )
 
+llm = ChatOpenAI(
+    model=MODEL_NAME,
+    temperature=0.3,
+    api_key=api_key,
+    base_url="https://openrouter.ai/api/v1",
+)
 
 tools = []
 
