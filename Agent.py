@@ -88,30 +88,44 @@ tools.append(Tool(
 
 
 # Ноды Role F
-'''
-from Node_Memory import save_best_model, load_previous_best, compare_with_previous
+from Node_Memory import (
+    remember_step,
+    get_session_memory,
+    save_best_model,
+    load_previous_best,
+    compare_with_previous,
+)
+tools.append(Tool(
+    name="remember_step",
+    func=remember_step,
+    description="Кратковременная память: записывает в текущую сессию факт выполнения "
+                "очередного шага пайплайна. Передавай JSON с полями tool (имя ноды), "
+                "status (ok/error), summary (краткое описание результата)."))
+tools.append(Tool(
+    name="get_session_memory",
+    func=get_session_memory,
+    description="Кратковременная память: возвращает снимок текущей сессии — список "
+                "выполненных шагов, обученные модели и текущий лидер. Вызывай, чтобы "
+                "вспомнить, какие модели уже обучены и что делалось. На вход — {}"))
 tools.append(Tool(
     name="save_best_model",
     func=save_best_model,
-    description="Сохраняет лучшую модель в .pkl и метрики в JSON для "
-                "использования при следующих запусках агента."
-))
+    description="Долговременная память: сохраняет лучшую модель в .pkl и метрики в JSON "
+                "для использования при следующих запусках агента. Принимает JSON "
+                "{model_name, metrics, model_pickle_path, best_params?, dataset_shape?}."))
 tools.append(Tool(
     name="load_previous_best",
     func=load_previous_best,
-    description="Загружает метрики и параметры лучшей модели из предыдущих "
-                "запусков агента. Возвращает None, если это первый запуск."
-))
+    description="Долговременная память: загружает метрики и имя лучшей модели из "
+                "предыдущих запусков агента. Возвращает previous=null, если это первый "
+                "запуск. Вызывай в самом начале пайплайна. На вход — {}"))
 tools.append(Tool(
     name="compare_with_previous",
     func=compare_with_previous,
-    description="Сравнивает текущие метрики с сохранёнными из предыдущего "
-                "запуска. Возвращает выводы: улучшение/ухудшение и насколько."
-))
-
-
-
-'''
+    description="Долговременная память: сравнивает текущие метрики с сохранёнными из "
+                "предыдущего лучшего запуска. Возвращает verdict (improved/degraded/"
+                "equal/first_run) и should_overwrite. Принимает JSON "
+                "{current_metrics, current_model_name}."))
 
 ARTIFACT_DIR = "artifacts"
 os.makedirs(ARTIFACT_DIR, exist_ok=True)
@@ -126,6 +140,26 @@ SYSTEM_PROMPT = """
 - Всегда работай пошагово и вызывай инструменты по мере необходимости.
 - Ничего не выдумывай про данные: сначала загрузи датасет, затем сделай EDA, затем предобработку.
 - Если входные параметры для инструмента нужны структурированные — передавай их как JSON-строку.
+
+Работа с памятью (обязательно):
+- В самом начале пайплайна вызови load_previous_best с {}. Если previous=null — это
+  первый запуск. Если previous есть — запомни его метрики (особенно mae), они пригодятся
+  для сравнения в конце.
+- После каждой ключевой ноды (load_data, run_eda, preprocess_execution, feature_engineering,
+  train_models, tune_hyperparams) вызывай remember_step, передавая tool, status и короткий
+  summary. Это кратковременная память текущей сессии.
+- Если нужно вспомнить, какие модели уже обучены в этой сессии — вызывай get_session_memory
+  с {}.
+- После train_models возьми из его результата поле current_model_path — это путь к pickle
+  лучшей модели текущего запуска. Он понадобится для save_best_model.
+- После tune_hyperparams (или после train_models, если тюнинг пропущен) вызови
+  compare_with_previous, передав JSON {"current_metrics": <метрики лучшей модели>,
+  "current_model_name": <имя лучшей модели>}.
+- В самом конце вызови save_best_model с JSON {"model_name": <имя>, "metrics": <метрики>,
+  "model_pickle_path": <current_model_path>, "best_params": <params или null>,
+  "dataset_shape": {"rows": ..., "cols": ...}}. На первом запуске — вызывай всегда.
+  На последующих — ориентируйся на verdict от compare_with_previous: при improved/first_run
+  сохраняем обязательно, при degraded/equal можно пропустить.
 """.strip()
 if __name__ == "__main__":
     agent = create_agent(model=llm, tools=tools, system_prompt=SYSTEM_PROMPT)
@@ -139,9 +173,13 @@ if __name__ == "__main__":
 
     user_input = (
         "Запусти полный pipeline.\n"
-        f"Сначала вызови load_data с JSON: {{\"file_paths\": [\"{dataset_path}\"]}}.\n"
+        "Сначала вызови load_previous_best с {}, чтобы узнать результаты прошлых запусков.\n"
+        f"Затем вызови load_data с JSON: {{\"file_paths\": [\"{dataset_path}\"]}}.\n"
         "Потом сделай EDA, затем preprocess_decision, затем preprocess_execution, затем feature_engineering, "
-        "затем model_selection, затем train_models и tune_hyperparams."
+        "затем model_selection, затем train_models и tune_hyperparams. "
+        "После каждого шага вызывай remember_step.\n"
+        "В конце вызови compare_with_previous с текущими метриками лучшей модели, "
+        "а затем save_best_model, передав model_pickle_path из current_model_path результата train_models."
     )
 
     result = agent.invoke({"messages": [{"role": "user", "content": user_input}]})
