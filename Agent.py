@@ -140,7 +140,7 @@ tools.append(StructuredTool.from_function(
 
 
 SYSTEM_PROMPT = """
-ML-пайплайн. Инструменты — функции нод; аргумент у большинства один: input_str (dict или JSON-строка).
+Запрещено задавать вопросы. Выполни ML-пайплайн. Инструменты — функции нод; аргумент у большинства один: input_str (dict или JSON-строка).
 Один tool за шаг. Метрики только из ответов train_models / tune_hyperparams.
 """.strip()
 
