@@ -8,7 +8,7 @@ from sklearn.ensemble import RandomForestRegressor, GradientBoostingRegressor
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import mean_absolute_error, r2_score
 
-from Node_Memory import register_trained_models, MEMORY_DIR
+from Node_Memory import register_trained_models, set_pipeline_state, get_pipeline_state, MEMORY_DIR
 
 CURRENT_BEST_MODEL_PATH = os.path.join(MEMORY_DIR, "current_best_model.pkl")
 
@@ -29,7 +29,10 @@ def train_models(input_str: str, llm=None) -> dict:
                 "status": "error",
                 "error": "Неподдерживаемый тип входа для train_models"
             }
-        path = params['dataset_path']
+        state = get_pipeline_state()
+        path = params.get('dataset_path') or state.get('featured_dataset_path') or state.get('preprocessed_dataset_path') or state.get('dataset_path')
+        if not path:
+            return {"status": "error", "error": "dataset_path не найден ни в аргументах, ни в pipeline_state"}
 
         context = params.get('context', '')
 
@@ -39,9 +42,11 @@ def train_models(input_str: str, llm=None) -> dict:
                 "error": "LLM не передан в train_models"
             }
 
-        recommended_models = params['recommended_models']
+        recommended_models = params.get('recommended_models') or state.get('recommended_models')
+        if not recommended_models:
+            return {"status": "error", "error": "recommended_models не найдены ни в аргументах, ни в pipeline_state"}
 
-        df = pd.read_csv(path)
+        df = pd.read_csv(path) if path.endswith(".csv") else pd.read_excel(path)
 
         response = llm.invoke([
             SystemMessage(
@@ -63,6 +68,12 @@ def train_models(input_str: str, llm=None) -> dict:
             models_dict=trained_models,
             best_name=best_model,
             metrics=metrics
+        )
+
+        set_pipeline_state(
+            current_model_pickle_path=CURRENT_BEST_MODEL_PATH,
+            best_model_name=best_model,
+            best_metrics=metrics.get(best_model),
         )
 
         return {

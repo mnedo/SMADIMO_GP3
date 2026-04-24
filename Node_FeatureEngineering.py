@@ -1,6 +1,18 @@
+import os
 import json
 import pandas as pd
 from langchain_core.messages import HumanMessage, SystemMessage
+
+from Node_Memory import set_pipeline_state, get_pipeline_state
+
+ARTIFACT_DIR = "artifacts"
+os.makedirs(ARTIFACT_DIR, exist_ok=True)
+
+
+def _read_dataset(path: str) -> pd.DataFrame:
+    if path.endswith(".csv"):
+        return pd.read_csv(path)
+    return pd.read_excel(path)
 
 
 def feature_engineering(input_str: str, llm=None) -> dict:
@@ -20,8 +32,10 @@ def feature_engineering(input_str: str, llm=None) -> dict:
                 "status": "error",
                 "error": "Неподдерживаемый тип входа для feature_engineering"
             }
-        path = params['dataset_path']
-        df = pd.read_excel(path)
+        path = params.get('dataset_path') or get_pipeline_state().get('preprocessed_dataset_path')
+        if not path:
+            return {"status": "error", "error": "dataset_path не найден ни в аргументах, ни в pipeline_state"}
+        df = _read_dataset(path)
 
         context = params.get('context', '')
 
@@ -42,8 +56,10 @@ def feature_engineering(input_str: str, llm=None) -> dict:
         exec(response.content)
         new_columns = [col for col in df.columns if col not in original_columns]
 
-        output_path = path.replace('.xlsx', '_fe.csv')
+        output_path = os.path.join(ARTIFACT_DIR, "featured_dataset.csv")
         df.to_csv(output_path, index=False)
+
+        set_pipeline_state(featured_dataset_path=output_path)
 
         return {
             'status': 'ok',

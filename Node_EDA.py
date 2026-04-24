@@ -2,8 +2,17 @@ import os
 import json
 import pandas as pd
 
+from Node_Memory import set_pipeline_state
+
 ARTIFACT_DIR = "artifacts"
 os.makedirs(ARTIFACT_DIR, exist_ok=True)
+
+
+def _read_dataset(path: str) -> pd.DataFrame:
+    if path.endswith(".csv"):
+        return pd.read_csv(path)
+    return pd.read_excel(path)
+
 
 def run_eda(input_str):
     """
@@ -40,7 +49,7 @@ def run_eda(input_str):
                 "message": "run_eda завершилась с ошибкой"
             }
 
-        df = pd.read_excel(dataset_path)
+        df = _read_dataset(dataset_path)
 
         numeric_columns = df.select_dtypes(include="number").columns.tolist()
         object_columns = df.select_dtypes(include=["object"]).columns.tolist()
@@ -96,6 +105,8 @@ def run_eda(input_str):
 
         with open(eda_report_path, "w", encoding="utf-8") as f:
             json.dump(eda_report, f, ensure_ascii=False, indent=2)
+
+        set_pipeline_state(eda_report_path=eda_report_path, dataset_path=dataset_path)
 
         return {
             "status": "ok",

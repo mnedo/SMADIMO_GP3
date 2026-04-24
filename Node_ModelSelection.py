@@ -1,6 +1,8 @@
 import json
 from langchain_core.messages import HumanMessage, SystemMessage
 
+from Node_Memory import set_pipeline_state, get_pipeline_state
+
 
 def model_selection(input_str: str, llm=None) -> dict:
     '''
@@ -19,7 +21,10 @@ def model_selection(input_str: str, llm=None) -> dict:
                 "status": "error",
                 "error": "Неподдерживаемый тип входа для model_selection"
             }
-        path = params['dataset_path']
+        state = get_pipeline_state()
+        path = params.get('dataset_path') or state.get('featured_dataset_path') or state.get('preprocessed_dataset_path') or state.get('dataset_path')
+        if not path:
+            return {"status": "error", "error": "dataset_path не найден ни в аргументах, ни в pipeline_state"}
 
         context = params.get('context', '')
 
@@ -36,6 +41,8 @@ def model_selection(input_str: str, llm=None) -> dict:
                 content=f'{context}\n\nВыбери 2-3 наиболее подходящие модели для этой задачи с обоснованием.')
         ])
         models = json.loads(response.content)
+
+        set_pipeline_state(recommended_models=models)
 
         return {
             'status': 'ok',

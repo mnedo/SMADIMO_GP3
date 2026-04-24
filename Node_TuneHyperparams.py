@@ -6,6 +6,9 @@ from sklearn.ensemble import RandomForestRegressor, GradientBoostingRegressor
 from sklearn.model_selection import train_test_split
 from langchain_core.messages import HumanMessage, SystemMessage
 
+from Node_Memory import set_pipeline_state, get_pipeline_state
+
+
 def tune_hyperparams(input_str: str, llm=None) -> dict:
     '''
     Принимает json: dataset_path (путь к файлу), best_model (название лучшей модели), metrics (метрики после обучения), context (контекст от предыдущих нод)
@@ -23,9 +26,15 @@ def tune_hyperparams(input_str: str, llm=None) -> dict:
                 "status": "error",
                 "error": "Неподдерживаемый тип входа для tune_hyperparams"
             }
-        path = params['dataset_path']
-        best_model_name = params['best_model']
+        state = get_pipeline_state()
+        path = params.get('dataset_path') or state.get('featured_dataset_path') or state.get('preprocessed_dataset_path') or state.get('dataset_path')
+        best_model_name = params.get('best_model') or state.get('best_model_name')
         context = params.get('context', '')
+
+        if not path:
+            return {"status": "error", "error": "dataset_path не найден ни в аргументах, ни в pipeline_state"}
+        if not best_model_name:
+            return {"status": "error", "error": "best_model не найден ни в аргументах, ни в pipeline_state"}
 
         if llm is None:
             return {
@@ -33,7 +42,7 @@ def tune_hyperparams(input_str: str, llm=None) -> dict:
                 "error": "LLM не передан в tune_hyperparams"
             }
 
-        df = pd.read_csv(path)
+        df = pd.read_csv(path) if path.endswith(".csv") else pd.read_excel(path)
         X = df.drop(columns=['Цена']).select_dtypes(include='number')
         y = df['Цена']
         X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
@@ -52,6 +61,8 @@ def tune_hyperparams(input_str: str, llm=None) -> dict:
         exec(response.content, local_vars)
         best_params = local_vars['best_params']
         best_score = round(local_vars['best_score'], 4)
+
+        set_pipeline_state(best_params=best_params)
 
         return {
             'status': 'ok',

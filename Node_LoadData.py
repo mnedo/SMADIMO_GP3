@@ -2,6 +2,8 @@ import os
 import json
 import pandas as pd
 
+from Node_Memory import set_pipeline_state
+
 '''
 Принимает json: file_paths (список путей к Excel-файлам)
 Возвращает json: status, dataset_path (путь к объединенному файлу), metadata_path (путь к метаданным), rows, cols, columns, duplicate_rows_after_concat
@@ -74,6 +76,8 @@ def load_data(input_str):
 
         with open(metadata_path, "w", encoding="utf-8") as f:
             json.dump(result, f, ensure_ascii=False, indent=2)
+
+        set_pipeline_state(dataset_path=dataset_path)
 
         return result
 

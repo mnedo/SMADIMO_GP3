@@ -3,6 +3,8 @@ import json
 import numpy as np
 import pandas as pd
 
+from Node_Memory import set_pipeline_state, get_pipeline_state
+
 ARTIFACT_DIR = "artifacts"
 os.makedirs(ARTIFACT_DIR, exist_ok=True)
 
@@ -17,8 +19,14 @@ def preprocess_execution(input_data):
     """
     try:
         data = json.loads(input_data) if isinstance(input_data, str) else input_data
-        dataset_path = data["dataset_path"]
-        preprocess_plan = data["preprocess_plan"]
+        state = get_pipeline_state()
+        dataset_path = data.get("dataset_path") or state.get("dataset_path")
+        preprocess_plan = data.get("preprocess_plan") or state.get("preprocess_plan")
+
+        if not dataset_path:
+            return {"status": "error", "message": "dataset_path не найден ни в аргументах, ни в pipeline_state"}
+        if not preprocess_plan:
+            return {"status": "error", "message": "preprocess_plan не найден ни в аргументах, ни в pipeline_state"}
 
         if isinstance(preprocess_plan, str):
             preprocess_plan = json.loads(preprocess_plan)
@@ -119,6 +127,8 @@ def preprocess_execution(input_data):
 
         output_path = os.path.join(ARTIFACT_DIR, "preprocessed_dataset.csv")
         df.to_csv(output_path, index=False)
+
+        set_pipeline_state(preprocessed_dataset_path=output_path)
 
         return {
             "status": "success",

@@ -1,4 +1,7 @@
 import json
+import os
+
+from Node_Memory import set_pipeline_state, get_pipeline_state
 
 
 def preprocess_decision(input_data, llm):
@@ -21,7 +24,17 @@ def preprocess_decision(input_data, llm):
                 ensure_ascii=False,
                 indent=2
             )
-        eda_report = data["eda_report"]
+
+        eda_report = data.get("eda_report")
+        if eda_report is None:
+            eda_report_path = data.get("eda_report_path") or get_pipeline_state().get("eda_report_path")
+            if not eda_report_path or not os.path.exists(eda_report_path):
+                return json.dumps(
+                    {"status": "error", "message": "Не передан eda_report и не найден eda_report_path в state"},
+                    ensure_ascii=False, indent=2
+                )
+            with open(eda_report_path, encoding="utf-8") as f:
+                eda_report = json.load(f)
 
         prompt = f"""
     Ты опытный ML-инженер.
@@ -95,6 +108,7 @@ def preprocess_decision(input_data, llm):
             content = content.replace("```", "").strip()
 
         plan = json.loads(content)
+        set_pipeline_state(preprocess_plan=plan)
         return json.dumps(plan, ensure_ascii=False, indent=2)
 
     except Exception as e:
