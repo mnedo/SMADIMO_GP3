@@ -95,7 +95,12 @@ tools.append(StructuredTool.from_function(
 tools.append(StructuredTool.from_function(
     name="preprocess_execution",
     func=preprocess_execution,
-    description="Выполнить план. input_str: dict/JSON (dataset_path, preprocess_plan или {}).",
+    description=(
+        "Выполнить план предобработки. Аргумент input_data: dict/JSON с ключами dataset_path (опционально, иначе из state), "
+        "preprocess_plan — скопируй объект целиком из ответа preprocess_decision без упрощения. "
+        "Поле drop_columns в preprocess_plan должно быть таким же, как у preprocess_decision: список объектов с ключами column и reason; "
+        "не сокращай до списка имён колонок-строк."
+    ),
 ))
 tools.append(StructuredTool.from_function(
     name="feature_engineering",
