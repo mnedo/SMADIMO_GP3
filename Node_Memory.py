@@ -26,8 +26,6 @@ BEST_MODEL_PATH = os.path.join(MEMORY_DIR, "best_model.pkl")
 BEST_METADATA_PATH = os.path.join(MEMORY_DIR, "best_metadata.json")
 HISTORY_PATH = os.path.join(MEMORY_DIR, "history.jsonl")
 
-# pipeline_state живёт ровно одну сессию и используется нодами, чтобы
-# не полагаться на LLM в передаче путей/планов между шагами
 _PIPELINE_STATE_DEFAULTS = {
     "dataset_path": None,            # исходный загруженный датасет (xlsx/csv)
     "eda_report_path": None,         # путь к eda_report.json
@@ -54,17 +52,17 @@ _SESSION_MEMORY = {
 }
 
 
-def set_pipeline_state(**kwargs):
+def set_pipeline_state(**dct):
     '''
     Служебная функция: ноды вызывают её, чтобы положить в session-state новые
     путь/артефакт/план. LLM в этот стор писать не может — только ноды.
     '''
-    for key, value in kwargs.items():
+    for key, value in dct.items():
         if key in _PIPELINE_STATE_DEFAULTS:
             _SESSION_MEMORY["pipeline_state"][key] = value
 
 
-def get_pipeline_state() -> dict:
+def get_pipeline_state():
     '''
     Возвращает копию текущего pipeline_state. Ноды используют это, чтобы
     подтянуть dataset_path / план и т.п. без помощи LLM.

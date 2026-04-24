@@ -1,4 +1,5 @@
 import json
+import os
 import optuna
 import pandas as pd
 from sklearn.linear_model import Ridge, Lasso
@@ -7,6 +8,8 @@ from sklearn.model_selection import train_test_split
 from langchain_core.messages import HumanMessage, SystemMessage
 
 from Node_Memory import set_pipeline_state, get_pipeline_state
+
+
 
 
 def tune_hyperparams(input_str: str, llm=None) -> dict:
@@ -51,7 +54,8 @@ def tune_hyperparams(input_str: str, llm=None) -> dict:
             SystemMessage(
                 content='Ты эксперт по машинному обучению. Отвечай только готовым Python-кодом без пояснений и без ```python```. Используй optuna и sklearn. Для RandomForestRegressor параметр max_features может быть только: int, float, sqrt, log2 или None. Значение auto недопустимо.'),
             HumanMessage(
-                content=f'{context}\n\nДанные уже разделены: X_train, X_test, y_train, y_test.\nМодель для оптимизации: {best_model_name}.\n\nНапиши код который:\n1. Определяет функцию objective для Optuna\n2. Создаёт study с direction="minimize"\n3. Запускает study.optimize() с n_trials=50\n4. Сохраняет лучшие параметры в best_params (dict)\n5. Сохраняет лучший MAE в best_score (float)')
+                content=f'{context}\n\nДанные уже разделены: X_train, X_test, y_train, y_test.\nМодель для оптимизации: {best_model_name}.\n\nНапиши код который:\n1. Определяет функцию objective для Optuna\n2. Создаёт study с direction="minimize"\n3. Запускает study.optimize() с n_trials на твое усмотрение\n4. Сохраняет лучшие параметры в best_params (dict)\n5. Сохраняет лучший MAE в best_score (float)'
+            ),
         ])
 
         local_vars = {
