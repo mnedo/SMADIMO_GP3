@@ -79,7 +79,7 @@ def load_data(input_str):
             json.dump(result, f, ensure_ascii=False, indent=2)
 
         set_pipeline_state(dataset_path=dataset_path)
-
+        print('load_data завершилась успешно')
         return result
 
     except Exception as e:

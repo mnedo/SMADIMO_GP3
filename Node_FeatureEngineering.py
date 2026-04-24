@@ -60,7 +60,7 @@ def feature_engineering(input_str: str, llm=None) -> dict:
         df.to_csv(output_path, index=False)
 
         set_pipeline_state(featured_dataset_path=output_path)
-
+        print('feature_engineering завершилась успешно')
         return {
             'status': 'ok',
             'new_features': new_columns,

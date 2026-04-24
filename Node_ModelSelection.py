@@ -43,7 +43,7 @@ def model_selection(input_str: str, llm=None) -> dict:
         models = json.loads(response.content)
 
         set_pipeline_state(recommended_models=models)
-
+        print('model_selection завершилась успешно')
         return {
             'status': 'ok',
             'output_path': path,

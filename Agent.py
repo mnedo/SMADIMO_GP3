@@ -15,11 +15,11 @@ from Node_TrainModels import train_models
 from Node_TuneHyperparams import tune_hyperparams
 from Node_Memory import remember_step, get_session_memory, save_best_model, load_previous_best, compare_with_previous, set_pipeline_state
 
-model_i = 0
+model_i = 1
 MODEL_NAME = [
     "deepseek/deepseek-chat-v3-0324",
-    "moonshotai/kimi-k2-0905",
-    "anthropic/claude-opus-4.7",
+    "openai/gpt-5-mini",
+    "anthropic/claude-sonnet-4.6",
     "google/gemini-3.1-pro-preview",
 ][model_i]
 
@@ -30,7 +30,7 @@ llm = ChatOpenAI(
     model=MODEL_NAME,
     temperature=0.3,
     top_p=0.9,
-    max_tokens=2048,
+    max_tokens=10_000,
     api_key=api_key,
     base_url="https://openrouter.ai/api/v1",
 )
@@ -161,8 +161,7 @@ if __name__ == "__main__":
         Дальше run_eda, preprocess_decision, preprocess_execution, feature_engineering,
         model_selection, train_models, tune_hyperparams, compare_with_previous, save_best_model; remember_step после шагов."""
     )
-
+    print(f"{MODEL_NAME} начала работу")
     result = agent.invoke({"messages": [{"role": "user", "content": user_input}]})
     print(result)
-    print(f"LLM: {MODEL_NAME}")
     print(f"Total cost: {_extract_total_cost(result):.6f}")

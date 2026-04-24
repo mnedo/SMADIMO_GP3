@@ -107,7 +107,7 @@ def run_eda(input_str):
             json.dump(eda_report, f, ensure_ascii=False, indent=2)
 
         set_pipeline_state(eda_report_path=eda_report_path, dataset_path=dataset_path)
-
+        print('run_eda завершилась успешно')
         return {
             "status": "ok",
             "error": None,

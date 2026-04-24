@@ -76,6 +76,7 @@ def train_models(input_str: str, llm=None) -> dict:
             best_metrics=metrics.get(best_model),
         )
 
+        print('train_models завершилась успешно')
         return {
             'status': 'ok',
             'metrics': metrics,

@@ -129,7 +129,7 @@ def preprocess_execution(input_data):
         df.to_csv(output_path, index=False)
 
         set_pipeline_state(preprocessed_dataset_path=output_path)
-
+        print('preprocess_execution завершилась успешно')
         return {
             "status": "success",
             "preprocessed_dataset_path": output_path,
