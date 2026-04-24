@@ -1,10 +1,16 @@
+import os
 import json
+import pickle
 import pandas as pd
 from langchain_core.messages import HumanMessage, SystemMessage
 from sklearn.linear_model import Ridge, Lasso
 from sklearn.ensemble import RandomForestRegressor, GradientBoostingRegressor
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import mean_absolute_error, r2_score
+
+from Node_Memory import register_trained_models, MEMORY_DIR
+
+CURRENT_BEST_MODEL_PATH = os.path.join(MEMORY_DIR, "current_best_model.pkl")
 
 def train_models(input_str: str, llm=None) -> dict:
     '''
@@ -48,12 +54,23 @@ def train_models(input_str: str, llm=None) -> dict:
         exec(response.content, local_vars)
         metrics = local_vars['metrics']
         best_model = local_vars['best_model']
+        trained_models = local_vars['trained_models']
+
+        with open(CURRENT_BEST_MODEL_PATH, 'wb') as f:
+            pickle.dump(trained_models[best_model], f)
+
+        register_trained_models(
+            models_dict=trained_models,
+            best_name=best_model,
+            metrics=metrics
+        )
 
         return {
             'status': 'ok',
             'metrics': metrics,
             'best_model': best_model,
-            'trained_models': local_vars['trained_models'],
+            'trained_models': trained_models,
+            'current_model_path': CURRENT_BEST_MODEL_PATH,
             'context': context + f'\n\nTrainModels обучил модели. Метрики: {metrics}. Лучшая модель: {best_model}'
         }
 
