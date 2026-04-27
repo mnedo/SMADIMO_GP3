@@ -86,7 +86,64 @@ def run_eda(input_str):
             if df[col].nunique(dropna=False) <= 1
         ]
 
+        numeric_distributions = {}
+        for col in numeric_columns:
+            series = df[col].dropna()
+            if series.empty:
+                continue
+            numeric_distributions[col] = {
+                "count_non_null": int(series.shape[0]),
+                "mean": float(series.mean()),
+                "std": float(series.std()) if series.shape[0] > 1 else 0.0,
+                "min": float(series.min()),
+                "q01": float(series.quantile(0.01)),
+                "q25": float(series.quantile(0.25)),
+                "median": float(series.quantile(0.5)),
+                "q75": float(series.quantile(0.75)),
+                "q99": float(series.quantile(0.99)),
+                "max": float(series.max()),
+                "skew": float(series.skew()) if series.shape[0] > 2 else 0.0
+            }
+
+        categorical_profiles = {}
+        for col in categorical_columns:
+            non_null = df[col].dropna().astype(str).str.strip()
+            unique_count = int(non_null.nunique())
+            top_values = non_null.value_counts().head(10)
+            categorical_profiles[col] = {
+                "unique_count": unique_count,
+                "is_high_cardinality": unique_count > 50,
+                "top_values": [
+                    {"value": str(idx), "count": int(cnt)}
+                    for idx, cnt in top_values.items()
+                ]
+            }
+
+        text_profiles = {}
+        for col in text_columns:
+            text_series = df[col].dropna().astype(str)
+            if text_series.empty:
+                continue
+            token_lens = text_series.str.split().str.len()
+            char_lens = text_series.str.len()
+            text_profiles[col] = {
+                "count_non_null": int(text_series.shape[0]),
+                "avg_chars": float(char_lens.mean()),
+                "avg_words": float(token_lens.mean()),
+                "q95_chars": float(char_lens.quantile(0.95))
+            }
+
+        dataset_description = {
+            "rows": int(df.shape[0]),
+            "columns": int(df.shape[1]),
+            "missing_cells_total": int(df.isna().sum().sum()),
+            "missing_cells_percent": float((df.isna().sum().sum() / (df.shape[0] * df.shape[1]) * 100) if df.shape[0] and df.shape[1] else 0.0),
+            "duplicate_rows": int(df.duplicated().sum()),
+            "constant_columns_count": int(len(constant_columns))
+        }
+
         eda_report = {
+            "dataset_description": dataset_description,
             "dataset_shape": {
                 "rows": int(df.shape[0]),
                 "cols": int(df.shape[1])
@@ -98,7 +155,10 @@ def run_eda(input_str):
             "text_columns": text_columns,
             "duplicate_rows": int(df.duplicated().sum()),
             "constant_columns": constant_columns,
-            "missing_top": missing_top
+            "missing_top": missing_top,
+            "numeric_distributions": numeric_distributions,
+            "categorical_profiles": categorical_profiles,
+            "text_profiles": text_profiles
         }
 
         eda_report_path = os.path.join(ARTIFACT_DIR, "eda_report.json")

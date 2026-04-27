@@ -15,6 +15,11 @@ def _read_dataset(path: str) -> pd.DataFrame:
     return pd.read_excel(path)
 
 
+def _read_eda_report(path: str) -> dict:
+    with open(path, encoding="utf-8") as f:
+        return json.load(f)
+
+
 def feature_engineering(input_str: str, llm=None) -> dict:
     '''
     Принимает json: dataset_path (путь к файлу), context (контекст по датасету от предыдущих нод)
@@ -38,6 +43,14 @@ def feature_engineering(input_str: str, llm=None) -> dict:
         df = _read_dataset(path)
 
         context = params.get('context', '')
+        state = get_pipeline_state()
+        eda_report_path = params.get("eda_report_path") or state.get("eda_report_path")
+        eda_report = None
+        if eda_report_path and os.path.exists(eda_report_path):
+            try:
+                eda_report = _read_eda_report(eda_report_path)
+            except Exception:
+                eda_report = None
 
         if llm is None:
             return {
@@ -47,12 +60,29 @@ def feature_engineering(input_str: str, llm=None) -> dict:
 
         response = llm.invoke([
             SystemMessage(
-                content='Ты эксперт по feature engineering. Отвечай только готовым Python-кодом без пояснений и без ```python```.'),
+                content=(
+                    'Ты эксперт по feature engineering для задачи регрессии цены. '
+                    'Отвечай только корректным Python-кодом, который работает с DataFrame df, без пояснений и без ```python```. '
+                    'Цель — улучшить предсказательную способность признаков (R2), сохраняя обобщающую способность модели. '
+                    'Выбирай преобразования самостоятельно, опираясь на структуру данных и EDA-контекст, а не на шаблонные действия. '
+                    'Нельзя использовать колонку с ценой (price, цена, cost и эквиваленты) для генерации признаков в любом виде. '
+                    'Работай устойчиво с пропусками, типами и редкими категориями; код не должен падать при отсутствии ожидаемой колонки. '
+                    'Для текстовых и категориальных признаков выбирай уместные представления с учетом кардинальности и полезности сигнала. '
+                    'Избегай избыточно большого числа шумных и разреженных признаков, предпочитай компактные и информативные. '
+                    'Не удаляй существующие колонки, только добавляй новые.'
+                )),
             HumanMessage(
-                content=f'{context}\n\nНапиши Python-код который создаёт минимум 3 новых признака в датафрейме df. Используй только колонки которые есть в датасете.')
+                content=(
+                    f'{context}\n\nEDA report (если есть): {json.dumps(eda_report, ensure_ascii=False) if eda_report else "not_provided"}\n\n'
+                    'Используй доступный EDA-контекст и самостоятельно выбери разумные преобразования для создания новых признаков в df. '
+                    'Сфокусируйся на качестве для регрессии, устойчивости к пропускам и аккуратной работе с текстовыми признаками. '
+                    'Используй только колонки, которые реально есть в df. Не используй цену для построения признаков. '
+                    'Сгенерируй не меньше 3 новых признаков.'
+                ))
         ])
 
         original_columns = list(df.columns)
+        print(response.content)
         exec(response.content)
         new_columns = [col for col in df.columns if col not in original_columns]
 

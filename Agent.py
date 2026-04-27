@@ -30,7 +30,7 @@ llm = ChatOpenAI(
     model=MODEL_NAME,
     temperature=0.3,
     top_p=0.9,
-    max_tokens=10_000,
+    max_tokens=50_000,
     api_key=api_key,
     base_url="https://openrouter.ai/api/v1",
 )
