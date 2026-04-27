@@ -38,6 +38,19 @@ _PIPELINE_STATE_DEFAULTS = {
     "best_params": None,
     "current_model_pickle_path": None,
     "llm_model": None,               # какая LLM использовалась в этом запуске
+    "prompt_style": None,            # выбранный стиль промптов (Baseline / Few-shot / ...)
+    "llm_params": None,              # параметры запуска LLM (temperature, top_p, max_tokens, ...)
+}
+
+_LLM_USAGE_DEFAULTS = {
+    "total_calls": 0,                # все LLM-вызовы за сессию (агент + ноды)
+    "failed_calls": 0,               # вызовы, после которых exec/parse кода упал
+    "tokens": {                      # суммарные токены по всем вызовам
+        "prompt": 0,
+        "completion": 0,
+        "total": 0,
+    },
+    "total_cost": 0.0,               # суммарная стоимость в USD по token_usage.cost
 }
 
 _SESSION_MEMORY = {
@@ -49,6 +62,7 @@ _SESSION_MEMORY = {
     "best_metrics": None,
     "best_params": None,
     "pipeline_state": dict(_PIPELINE_STATE_DEFAULTS),
+    "llm_usage": dict(_LLM_USAGE_DEFAULTS, tokens=dict(_LLM_USAGE_DEFAULTS["tokens"])),
 }
 
 
@@ -70,17 +84,39 @@ def get_pipeline_state():
     return dict(_SESSION_MEMORY["pipeline_state"])
 
 
+def _safe_model_params(model_obj) -> dict:
+    '''
+    Аккуратно достаёт sklearn-параметры модели и сериализует их в JSON-friendly вид.
+    Если модель не sklearn-подобная или get_params упал — возвращает пустой dict.
+    '''
+    if model_obj is None:
+        return {}
+    try:
+        raw = model_obj.get_params()
+    except Exception:
+        return {}
+    safe = {}
+    for key, value in raw.items():
+        if isinstance(value, (int, float, str, bool)) or value is None:
+            safe[key] = value
+        else:
+            safe[key] = str(value)
+    return safe
+
+
 def register_trained_models(models_dict, best_name, metrics, best_params=None):
     '''
     Служебная (не-tool) функция для Node_TrainModels / Node_TuneHyperparams.
-    Записывает список обученных в текущей сессии моделей и лучшую из них
-    в кратковременную память. Возвращает краткую сводку.
+    Записывает список обученных в текущей сессии моделей (с их get_params())
+    и лучшую из них в кратковременную память. Возвращает краткую сводку.
     '''
     trained = []
+    models_dict = models_dict if isinstance(models_dict, dict) else {}
     for model_name, metric_values in metrics.items():
         trained.append({
             "name": model_name,
-            "metrics": metric_values
+            "metrics": metric_values,
+            "params": _safe_model_params(models_dict.get(model_name)),
         })
 
     _SESSION_MEMORY["models_trained"] = trained
@@ -100,6 +136,82 @@ def register_trained_models(models_dict, best_name, metrics, best_params=None):
         "models_trained_count": len(trained),
         "best_model_name": best_name
     }
+
+
+def _extract_token_usage(response) -> dict:
+    '''
+    Достаёт token_usage и cost из AIMessage.response_metadata.
+    Если данных нет — возвращает нули.
+    '''
+    if response is None:
+        return {"prompt_tokens": 0, "completion_tokens": 0, "total_tokens": 0, "cost": 0.0}
+    response_metadata = getattr(response, "response_metadata", {}) or {}
+    token_usage = response_metadata.get("token_usage", {}) or {}
+    return {
+        "prompt_tokens": int(token_usage.get("prompt_tokens", 0) or 0),
+        "completion_tokens": int(token_usage.get("completion_tokens", 0) or 0),
+        "total_tokens": int(token_usage.get("total_tokens", 0) or 0),
+        "cost": float(token_usage.get("cost", 0.0) or 0.0),
+    }
+
+
+def record_llm_call(response=None, success: bool = True) -> None:
+    '''
+    Регистрирует один вызов LLM в session-памяти:
+      - инкрементит total_calls,
+      - инкрементит failed_calls, если post-processing (exec/JSON-parse) упал,
+      - копит токены (prompt/completion/total) и cost из response_metadata.
+    Безопасно вызывать с response=None (например, если llm.invoke сам упал).
+    '''
+    usage = _extract_token_usage(response)
+    counters = _SESSION_MEMORY["llm_usage"]
+    counters["total_calls"] += 1
+    if not success:
+        counters["failed_calls"] += 1
+    counters["tokens"]["prompt"] += usage["prompt_tokens"]
+    counters["tokens"]["completion"] += usage["completion_tokens"]
+    counters["tokens"]["total"] += usage["total_tokens"]
+    counters["total_cost"] += usage["cost"]
+
+
+def get_llm_usage() -> dict:
+    '''
+    Возвращает снимок счётчиков LLM-вызовов с производным error_rate.
+    '''
+    counters = _SESSION_MEMORY["llm_usage"]
+    total = counters["total_calls"]
+    error_rate = (counters["failed_calls"] / total) if total else 0.0
+    return {
+        "total_calls": total,
+        "failed_calls": counters["failed_calls"],
+        "error_rate": round(error_rate, 4),
+        "tokens": dict(counters["tokens"]),
+        "total_cost": round(counters["total_cost"], 6),
+    }
+
+
+def _append_history_records(records: list) -> None:
+    '''
+    Дописывает записи в history.jsonl построчно (одна запись = одна строка).
+    Если файл уже существует и НЕ заканчивается на \\n (наследие старой версии,
+    которая писала без перевода строки) — сначала допишет \\n, чтобы новая
+    запись точно начиналась с новой строки и не слипалась с хвостом.
+    '''
+    if not records:
+        return
+
+    needs_leading_newline = False
+    if os.path.exists(HISTORY_PATH) and os.path.getsize(HISTORY_PATH) > 0:
+        with open(HISTORY_PATH, "rb") as f:
+            f.seek(-1, os.SEEK_END)
+            if f.read(1) != b"\n":
+                needs_leading_newline = True
+
+    with open(HISTORY_PATH, "a", encoding="utf-8") as f:
+        if needs_leading_newline:
+            f.write("\n")
+        for record in records:
+            f.write(json.dumps(record, ensure_ascii=False, default=str) + "\n")
 
 
 def remember_step(input_str):
@@ -173,6 +285,7 @@ def get_session_memory(input_str):
             "best_metrics": _SESSION_MEMORY["best_metrics"],
             "best_params": _SESSION_MEMORY["best_params"],
             "pipeline_state": dict(_SESSION_MEMORY["pipeline_state"]),
+            "llm_usage": get_llm_usage(),
         }
 
         return {
@@ -211,14 +324,15 @@ def save_best_model(input_str):
     Принимает json: model_name, metrics (mae/r2), model_pickle_path, best_params (optional),
                     dataset_shape (optional), llm_model (optional)
     Возвращает json: status, verdict, saved_model_path, saved_metadata_path,
-                     previous_model_name, delta_mae, was_overwritten, message
+                     previous_model_name, delta_mae, was_overwritten, history_entries, message
 
     Самодостаточная долговременная память:
       - на первом запуске всегда сохраняет модель как эталон
       - на повторных запусках сравнивает MAE текущей модели с сохранённой
         и перезаписывает best_model.pkl / best_metadata.json только если
         текущий MAE строго меньше (модель лучше)
-      - запись в history.jsonl добавляется всегда, включая llm_model и verdict
+      - в history.jsonl пишется запись на КАЖДУЮ обученную в сессии модель
+        (mae, r2, params, токены, cost, error_rate, prompt_style, llm_params).
     '''
     try:
         if isinstance(input_str, str):
@@ -250,9 +364,13 @@ def save_best_model(input_str):
                 "message": "save_best_model завершилась с ошибкой"
             }
 
-        best_params = data.get("best_params")
+        best_params = data.get("best_params") or _SESSION_MEMORY["pipeline_state"].get("best_params")
         dataset_shape = data.get("dataset_shape")
-        llm_model = data.get("llm_model") or _SESSION_MEMORY["pipeline_state"].get("llm_model")
+        state = _SESSION_MEMORY["pipeline_state"]
+        llm_model = data.get("llm_model") or state.get("llm_model")
+        prompt_style = state.get("prompt_style")
+        llm_params = state.get("llm_params")
+        llm_usage = get_llm_usage()
 
         current_mae = _extract_mae(metrics)
 
@@ -289,14 +407,20 @@ def save_best_model(input_str):
             should_overwrite = False
             delta_mae = 0.0
 
+        session_id = _SESSION_MEMORY["session_id"]
+        saved_at = datetime.now().isoformat(timespec="seconds")
+
         metadata = {
             "model_name": model_name,
             "metrics": metrics,
-            "best_params": best_params,
+            "model_params": best_params,
             "dataset_shape": dataset_shape,
             "llm_model": llm_model,
-            "session_id": _SESSION_MEMORY["session_id"],
-            "saved_at": datetime.now().isoformat(timespec="seconds"),
+            "prompt_style": prompt_style,
+            "llm_params": llm_params,
+            "llm_usage": llm_usage,
+            "session_id": session_id,
+            "saved_at": saved_at,
             "verdict": verdict,
         }
 
@@ -314,10 +438,43 @@ def save_best_model(input_str):
         else:
             saved_metadata_path = BEST_METADATA_PATH
 
-        history_record = dict(metadata)
-        history_record["was_overwritten"] = should_overwrite
-        with open(HISTORY_PATH, "a", encoding="utf-8") as f:
-            f.write(json.dumps(history_record, ensure_ascii=False, default=str) + "\n")
+        # Запись в history.jsonl: одна строка на КАЖДУЮ обученную в сессии модель.
+        # Если по какой-то причине ноды не зарегистрировали models_trained, fallback —
+        # одна запись на текущую лучшую модель (старое поведение).
+        models_trained = list(_SESSION_MEMORY.get("models_trained") or [])
+        if not models_trained:
+            models_trained = [{
+                "name": model_name,
+                "metrics": metrics,
+                "params": best_params or {},
+            }]
+
+        history_records = []
+        for entry in models_trained:
+            entry_name = entry.get("name")
+            is_best = (entry_name == model_name)
+            entry_params = best_params if (is_best and best_params) else entry.get("params") or {}
+            history_record = {
+                "session_id": session_id,
+                "saved_at": saved_at,
+                "model_name": entry_name,
+                "model_params": entry_params,
+                "metrics": entry.get("metrics"),
+                "is_best": is_best,
+                "prompt_style": prompt_style,
+                "llm_model": llm_model,
+                "llm_params": llm_params,
+                "llm_usage": llm_usage,
+                "dataset_shape": dataset_shape,
+            }
+            if is_best:
+                history_record["verdict"] = verdict
+                history_record["was_overwritten"] = should_overwrite
+                history_record["delta_mae"] = delta_mae
+            history_records.append(history_record)
+
+        _append_history_records(history_records)
+        history_entries = len(history_records)
 
         if verdict == "first_run":
             msg = f"Первый запуск: модель {model_name} сохранена как эталон"
@@ -340,6 +497,7 @@ def save_best_model(input_str):
             "previous_model_name": previous_model_name,
             "saved_model_path": saved_model_path,
             "saved_metadata_path": saved_metadata_path,
+            "history_entries": history_entries,
             "message": msg,
         }
 

@@ -2,13 +2,12 @@ import os
 import json
 import pickle
 import pandas as pd
-from langchain_core.messages import HumanMessage, SystemMessage
 from sklearn.linear_model import Ridge, Lasso
 from sklearn.ensemble import RandomForestRegressor, GradientBoostingRegressor
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import mean_absolute_error, r2_score
 
-from Node_Memory import register_trained_models, set_pipeline_state, get_pipeline_state, MEMORY_DIR
+from Node_Memory import register_trained_models, set_pipeline_state, get_pipeline_state, MEMORY_DIR, record_llm_call
 
 CURRENT_BEST_MODEL_PATH = os.path.join(MEMORY_DIR, "current_best_model.pkl")
 
@@ -19,6 +18,7 @@ def train_models(input_str: str, llm=None) -> dict:
 
     Обучает переданный список моделей на train-выборке и оценивает на test-выборке, возвращает метрики по моделям и указывает лучшую модель
     '''
+    response = None
     try:
         if isinstance(input_str, str):
             params = json.loads(input_str)
@@ -48,12 +48,24 @@ def train_models(input_str: str, llm=None) -> dict:
 
         df = pd.read_csv(path) if path.endswith(".csv") else pd.read_excel(path)
 
-        response = llm.invoke([
-            SystemMessage(
-                content='Ты эксперт по машинному обучению. Отвечай только готовым Python-кодом без пояснений и без ```python```. Используй только библиотеки: pandas, sklearn. Результаты сохраняй в переменные metrics (dict) и best_model (str).'),
-            HumanMessage(
-                content=f'{context}\n\nДатафрейм уже загружен в переменную df. Список моделей для обучения: {recommended_models}.\n\nНапиши код который:\n1. Делит df на X (числовые колонки кроме Цена) и y (Цена)\n2. Делает train_test_split\n3. Обучает каждую модель из списка\n4. Считает MAE и R2 для каждой\n5. Сохраняет результаты в metrics = {{"НазваниеМодели": {{"mae": ..., "r2": ...}}}}\n6. Сохраняет название лучшей модели по R2 в best_model\n7. Сохраняй каждый обученный объект модели в trained_models[НазваниеМодели]')
-        ])
+        with open("prompts.json", encoding="utf-8") as f:
+            prompts_data = json.load(f)
+        USER_PROMPT = prompts_data[prompts_data["PROMPT_STYLE"]]["train_models"]
+        USER_PROMPT += f"""
+
+DataFrame `df` уже загружен (таргет — "Цена").
+Список моделей для обучения: {recommended_models}.
+Контекст: {context}
+
+Используй только pandas и sklearn. Заполни переменные:
+- metrics: dict вида {{"НазваниеМодели": {{"mae": ..., "r2": ...}}}}
+- best_model: строка с названием лучшей модели по R2
+- trained_models: dict с обученными объектами моделей по названиям
+
+Только Python-код, без пояснений и без блока ```python.
+""".strip()
+
+        response = llm.invoke([{"role": "user", "content": USER_PROMPT}])
 
         local_vars = {'df': df}
         exec(response.content, local_vars)
@@ -77,6 +89,7 @@ def train_models(input_str: str, llm=None) -> dict:
         )
 
         print('train_models завершилась успешно')
+        record_llm_call(response, success=True)
         return {
             'status': 'ok',
             'metrics': metrics,
@@ -87,6 +100,8 @@ def train_models(input_str: str, llm=None) -> dict:
         }
 
     except Exception as e:
+        if response is not None:
+            record_llm_call(response, success=False)
         return {
             'status': 'error',
             'error': str(e)
