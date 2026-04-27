@@ -1,0 +1,75 @@
+{
+  "status": "success",
+  "decision_source": "llm",
+  "drop_columns": [
+    {
+      "column": "Unnamed: 0",
+      "reason": "technical_id"
+    },
+    {
+      "column": "Oskelly ID",
+      "reason": "technical_id"
+    },
+    {
+      "column": "Модель",
+      "reason": "high_missingness"
+    },
+    {
+      "column": "Винтаж",
+      "reason": "high_missingness"
+    },
+    {
+      "column": "Материал джинсов",
+      "reason": "high_missingness"
+    },
+    {
+      "column": "Материал рубашек",
+      "reason": "high_missingness"
+    },
+    {
+      "column": "Посадка",
+      "reason": "high_missingness"
+    }
+  ],
+  "fill_missing": {
+    "Размер": "missing_label",
+    "Раздел": "most_frequent",
+    "Категория": "most_frequent",
+    "Бренд": "most_frequent",
+    "Материал одежды": "missing_label",
+    "Цвет": "most_frequent",
+    "Состояние товара": "most_frequent",
+    "Скидка": "zero",
+    "Описание": "empty_string",
+    "Материал футболок": "missing_label"
+  },
+  "drop_duplicates": true,
+  "outlier_actions": {},
+  "categorical_handling": {
+    "Размер": "keep",
+    "Раздел": "keep",
+    "Категория": "keep",
+    "Бренд": "keep",
+    "Материал одежды": "keep",
+    "Цвет": "keep",
+    "Состояние товара": "keep",
+    "Продавец": "keep",
+    "Скидка": "keep",
+    "Материал футболок": "keep"
+  },
+  "text_processing": {
+    "Описание": "basic_clean"
+  },
+  "special_preprocessing": {
+    "Скидка": "percent_to_float",
+    "Размер": "normalize_size_format"
+  },
+  "handle_imbalance": null,
+  "notes": [
+    "Удалил технические id и сильно пропущенные колонки (>~80-90%).",
+    "Пропуски в 'Скидка' трактую как отсутствие скидки (заполнить нулём) и конвертирую %-строки в числа.",
+    "Нормализовать формат 'Размер' (FR/IT/EU/INT/JEANS и т.п.) в единый представимый вид.",
+    "Описания пройти basic_clean; дубликаты удалить.",
+    "Целевая 'Цена' имеет выраженный правый хвост — можно рассмотреть мягкое log1p или аккуратную обработку верхнего хвоста на этапе моделирования."
+  ]
+}

@@ -1,0 +1,737 @@
+{
+  "dataset_description": {
+    "rows": 9499,
+    "columns": 19,
+    "missing_cells_total": 62308,
+    "missing_cells_percent": 34.523301621777364,
+    "duplicate_rows": 79,
+    "constant_columns_count": 0
+  },
+  "dataset_shape": {
+    "rows": 9499,
+    "cols": 19
+  },
+  "columns": [
+    "Unnamed: 0",
+    "Размер",
+    "Раздел",
+    "Категория",
+    "Бренд",
+    "Материал одежды",
+    "Цвет",
+    "Состояние товара",
+    "Продавец",
+    "Oskelly ID",
+    "Скидка",
+    "Цена",
+    "Описание",
+    "Винтаж",
+    "Посадка",
+    "Материал джинсов",
+    "Модель",
+    "Материал футболок",
+    "Материал рубашек"
+  ],
+  "dtypes": {
+    "Unnamed: 0": "int64",
+    "Размер": "object",
+    "Раздел": "object",
+    "Категория": "object",
+    "Бренд": "object",
+    "Материал одежды": "object",
+    "Цвет": "object",
+    "Состояние товара": "object",
+    "Продавец": "object",
+    "Oskelly ID": "float64",
+    "Скидка": "object",
+    "Цена": "float64",
+    "Описание": "object",
+    "Винтаж": "object",
+    "Посадка": "object",
+    "Материал джинсов": "object",
+    "Модель": "object",
+    "Материал футболок": "object",
+    "Материал рубашек": "object"
+  },
+  "numeric_columns": [
+    "Unnamed: 0",
+    "Oskelly ID",
+    "Цена"
+  ],
+  "categorical_columns": [
+    "Размер",
+    "Раздел",
+    "Категория",
+    "Бренд",
+    "Материал одежды",
+    "Цвет",
+    "Состояние товара",
+    "Продавец",
+    "Скидка",
+    "Винтаж",
+    "Посадка",
+    "Материал джинсов",
+    "Модель",
+    "Материал футболок",
+    "Материал рубашек"
+  ],
+  "text_columns": [
+    "Описание"
+  ],
+  "duplicate_rows": 79,
+  "constant_columns": [],
+  "missing_top": [
+    {
+      "column": "Модель",
+      "missing_count": 9367,
+      "missing_percent": 98.61
+    },
+    {
+      "column": "Винтаж",
+      "missing_count": 9356,
+      "missing_percent": 98.49
+    },
+    {
+      "column": "Материал рубашек",
+      "missing_count": 8944,
+      "missing_percent": 94.16
+    },
+    {
+      "column": "Материал джинсов",
+      "missing_count": 8939,
+      "missing_percent": 94.1
+    },
+    {
+      "column": "Материал футболок",
+      "missing_count": 8486,
+      "missing_percent": 89.34
+    },
+    {
+      "column": "Посадка",
+      "missing_count": 7780,
+      "missing_percent": 81.9
+    },
+    {
+      "column": "Материал одежды",
+      "missing_count": 2693,
+      "missing_percent": 28.35
+    },
+    {
+      "column": "Скидка",
+      "missing_count": 1722,
+      "missing_percent": 18.13
+    },
+    {
+      "column": "Размер",
+      "missing_count": 516,
+      "missing_percent": 5.43
+    },
+    {
+      "column": "Описание",
+      "missing_count": 513,
+      "missing_percent": 5.4
+    },
+    {
+      "column": "Раздел",
+      "missing_count": 499,
+      "missing_percent": 5.25
+    },
+    {
+      "column": "Категория",
+      "missing_count": 499,
+      "missing_percent": 5.25
+    },
+    {
+      "column": "Бренд",
+      "missing_count": 499,
+      "missing_percent": 5.25
+    },
+    {
+      "column": "Цвет",
+      "missing_count": 499,
+      "missing_percent": 5.25
+    },
+    {
+      "column": "Состояние товара",
+      "missing_count": 499,
+      "missing_percent": 5.25
+    }
+  ],
+  "numeric_distributions": {
+    "Unnamed: 0": {
+      "count_non_null": 9499,
+      "mean": 535.7670281082219,
+      "std": 434.9592533290442,
+      "min": 0.0,
+      "q01": 7.0,
+      "q25": 206.0,
+      "median": 434.0,
+      "q75": 753.5,
+      "q99": 1904.0200000000004,
+      "max": 1999.0,
+      "skew": 1.2420155400079904
+    },
+    "Oskelly ID": {
+      "count_non_null": 9000,
+      "mean": 4922883.540222222,
+      "std": 1141394.5420019506,
+      "min": 62165.0,
+      "q01": 625243.04,
+      "q25": 4849627.0,
+      "median": 5492253.5,
+      "q75": 5609929.5,
+      "q99": 5633927.02,
+      "max": 5637141.0,
+      "skew": -2.132039429990687
+    },
+    "Цена": {
+      "count_non_null": 9000,
+      "mean": 72595.76377777777,
+      "std": 170692.79301066697,
+      "min": 9651.0,
+      "q01": 10000.0,
+      "q25": 24719.5,
+      "median": 42830.0,
+      "q75": 85000.0,
+      "q99": 416919.1200000007,
+      "max": 12500000.0,
+      "skew": 47.154627066243854
+    }
+  },
+  "categorical_profiles": {
+    "Размер": {
+      "unique_count": 529,
+      "is_high_cardinality": true,
+      "top_values": [
+        {
+          "value": "INT M",
+          "count": 720
+        },
+        {
+          "value": "INT S",
+          "count": 656
+        },
+        {
+          "value": "INT L",
+          "count": 563
+        },
+        {
+          "value": "INT S/M/L/XL",
+          "count": 321
+        },
+        {
+          "value": "INT S/M/L",
+          "count": 291
+        },
+        {
+          "value": "INT XL",
+          "count": 288
+        },
+        {
+          "value": "INT S/M",
+          "count": 279
+        },
+        {
+          "value": "INT XS",
+          "count": 246
+        },
+        {
+          "value": "INT M/L",
+          "count": 225
+        },
+        {
+          "value": "IT 40",
+          "count": 201
+        }
+      ]
+    },
+    "Раздел": {
+      "unique_count": 2,
+      "is_high_cardinality": false,
+      "top_values": [
+        {
+          "value": "Мужское",
+          "count": 4583
+        },
+        {
+          "value": "Женское",
+          "count": 4417
+        }
+      ]
+    },
+    "Категория": {
+      "unique_count": 75,
+      "is_high_cardinality": true,
+      "top_values": [
+        {
+          "value": "Футболки",
+          "count": 1096
+        },
+        {
+          "value": "Куртки",
+          "count": 802
+        },
+        {
+          "value": "Худи и толстовки",
+          "count": 719
+        },
+        {
+          "value": "Джемперы и свитеры",
+          "count": 586
+        },
+        {
+          "value": "Повседневные брюки",
+          "count": 414
+        },
+        {
+          "value": "Кэжуал рубашки",
+          "count": 411
+        },
+        {
+          "value": "Прямые джинсы",
+          "count": 392
+        },
+        {
+          "value": "Шорты",
+          "count": 387
+        },
+        {
+          "value": "Повседневные платья",
+          "count": 321
+        },
+        {
+          "value": "Прямые брюки",
+          "count": 273
+        }
+      ]
+    },
+    "Бренд": {
+      "unique_count": 505,
+      "is_high_cardinality": true,
+      "top_values": [
+        {
+          "value": "STONE ISLAND",
+          "count": 301
+        },
+        {
+          "value": "POLO RALPH LAUREN",
+          "count": 261
+        },
+        {
+          "value": "FEAR OF GOD ESSENTIALS",
+          "count": 252
+        },
+        {
+          "value": "DOLCE&GABBANA",
+          "count": 230
+        },
+        {
+          "value": "BURBERRY",
+          "count": 214
+        },
+        {
+          "value": "BALENCIAGA",
+          "count": 198
+        },
+        {
+          "value": "GUCCI",
+          "count": 188
+        },
+        {
+          "value": "MAX MARA",
+          "count": 179
+        },
+        {
+          "value": "PRADA",
+          "count": 160
+        },
+        {
+          "value": "MONCLER",
+          "count": 160
+        }
+      ]
+    },
+    "Материал одежды": {
+      "unique_count": 26,
+      "is_high_cardinality": false,
+      "top_values": [
+        {
+          "value": "Хлопок",
+          "count": 2371
+        },
+        {
+          "value": "Другое",
+          "count": 1239
+        },
+        {
+          "value": "Шерсть",
+          "count": 834
+        },
+        {
+          "value": "Полиэстер",
+          "count": 570
+        },
+        {
+          "value": "Полиамид",
+          "count": 397
+        },
+        {
+          "value": "Вискоза",
+          "count": 363
+        },
+        {
+          "value": "Шелк",
+          "count": 284
+        },
+        {
+          "value": "Кашемир",
+          "count": 153
+        },
+        {
+          "value": "Лен",
+          "count": 140
+        },
+        {
+          "value": "Кожа",
+          "count": 122
+        }
+      ]
+    },
+    "Цвет": {
+      "unique_count": 26,
+      "is_high_cardinality": false,
+      "top_values": [
+        {
+          "value": "Черный",
+          "count": 2155
+        },
+        {
+          "value": "Белый",
+          "count": 990
+        },
+        {
+          "value": "Бежевый",
+          "count": 859
+        },
+        {
+          "value": "Синий",
+          "count": 776
+        },
+        {
+          "value": "Серый",
+          "count": 665
+        },
+        {
+          "value": "Мульти",
+          "count": 641
+        },
+        {
+          "value": "Темно-синий",
+          "count": 475
+        },
+        {
+          "value": "Коричневый",
+          "count": 464
+        },
+        {
+          "value": "Другое",
+          "count": 394
+        },
+        {
+          "value": "Голубой",
+          "count": 322
+        }
+      ]
+    },
+    "Состояние товара": {
+      "unique_count": 3,
+      "is_high_cardinality": false,
+      "top_values": [
+        {
+          "value": "Новое с биркой",
+          "count": 6588
+        },
+        {
+          "value": "Отличное состояние",
+          "count": 2154
+        },
+        {
+          "value": "Хорошее состояние",
+          "count": 258
+        }
+      ]
+    },
+    "Продавец": {
+      "unique_count": 4,
+      "is_high_cardinality": false,
+      "top_values": [
+        {
+          "value": "Бутик",
+          "count": 5268
+        },
+        {
+          "value": "Частный продавец",
+          "count": 3484
+        },
+        {
+          "value": "Ресейл магазин",
+          "count": 239
+        },
+        {
+          "value": "Персональный шопер",
+          "count": 9
+        }
+      ]
+    },
+    "Скидка": {
+      "unique_count": 94,
+      "is_high_cardinality": true,
+      "top_values": [
+        {
+          "value": "-1%",
+          "count": 333
+        },
+        {
+          "value": "-20%",
+          "count": 233
+        },
+        {
+          "value": "-23%",
+          "count": 199
+        },
+        {
+          "value": "-28%",
+          "count": 178
+        },
+        {
+          "value": "-15%",
+          "count": 171
+        },
+        {
+          "value": "-26%",
+          "count": 170
+        },
+        {
+          "value": "-30%",
+          "count": 166
+        },
+        {
+          "value": "-17%",
+          "count": 161
+        },
+        {
+          "value": "-33%",
+          "count": 158
+        },
+        {
+          "value": "-13%",
+          "count": 156
+        }
+      ]
+    },
+    "Винтаж": {
+      "unique_count": 1,
+      "is_high_cardinality": false,
+      "top_values": [
+        {
+          "value": "Да",
+          "count": 143
+        }
+      ]
+    },
+    "Посадка": {
+      "unique_count": 3,
+      "is_high_cardinality": false,
+      "top_values": [
+        {
+          "value": "Средняя",
+          "count": 1444
+        },
+        {
+          "value": "Высокая",
+          "count": 234
+        },
+        {
+          "value": "Низкая",
+          "count": 41
+        }
+      ]
+    },
+    "Материал джинсов": {
+      "unique_count": 8,
+      "is_high_cardinality": false,
+      "top_values": [
+        {
+          "value": "Хлопок",
+          "count": 439
+        },
+        {
+          "value": "Хлопок-эластан",
+          "count": 73
+        },
+        {
+          "value": "Другое",
+          "count": 31
+        },
+        {
+          "value": "Хлопок-полиэстер",
+          "count": 8
+        },
+        {
+          "value": "Хлопок-лиоцелл",
+          "count": 5
+        },
+        {
+          "value": "Хлопок-лен",
+          "count": 2
+        },
+        {
+          "value": "Хлопок-кашемир",
+          "count": 1
+        },
+        {
+          "value": "Хлопок-сиацелл",
+          "count": 1
+        }
+      ]
+    },
+    "Модель": {
+      "unique_count": 56,
+      "is_high_cardinality": true,
+      "top_values": [
+        {
+          "value": "Cassandre",
+          "count": 13
+        },
+        {
+          "value": "Nylon Metal",
+          "count": 12
+        },
+        {
+          "value": "Atom",
+          "count": 9
+        },
+        {
+          "value": "Beta",
+          "count": 7
+        },
+        {
+          "value": "Gamma",
+          "count": 6
+        },
+        {
+          "value": "Crinkle Reps",
+          "count": 6
+        },
+        {
+          "value": "GG",
+          "count": 5
+        },
+        {
+          "value": "Arrow",
+          "count": 5
+        },
+        {
+          "value": "Re-Nylon",
+          "count": 4
+        },
+        {
+          "value": "Skull",
+          "count": 4
+        }
+      ]
+    },
+    "Материал футболок": {
+      "unique_count": 8,
+      "is_high_cardinality": false,
+      "top_values": [
+        {
+          "value": "Хлопок",
+          "count": 872
+        },
+        {
+          "value": "Другое",
+          "count": 110
+        },
+        {
+          "value": "Вискоза",
+          "count": 10
+        },
+        {
+          "value": "Хлопок-полиэстер",
+          "count": 8
+        },
+        {
+          "value": "Хлопок-эластан",
+          "count": 5
+        },
+        {
+          "value": "Хлопок-шерсть",
+          "count": 3
+        },
+        {
+          "value": "Синтетика",
+          "count": 3
+        },
+        {
+          "value": "Хлопок-лен",
+          "count": 2
+        }
+      ]
+    },
+    "Материал рубашек": {
+      "unique_count": 10,
+      "is_high_cardinality": false,
+      "top_values": [
+        {
+          "value": "Хлопок",
+          "count": 408
+        },
+        {
+          "value": "Другое",
+          "count": 89
+        },
+        {
+          "value": "Лен",
+          "count": 23
+        },
+        {
+          "value": "Шелк",
+          "count": 19
+        },
+        {
+          "value": "Шерсть",
+          "count": 5
+        },
+        {
+          "value": "Хлопок-полиэстер",
+          "count": 4
+        },
+        {
+          "value": "Хлопок-шелк",
+          "count": 3
+        },
+        {
+          "value": "Кашемир",
+          "count": 2
+        },
+        {
+          "value": "Хлопок-шерсть",
+          "count": 1
+        },
+        {
+          "value": "Хлопок-лиоцелл",
+          "count": 1
+        }
+      ]
+    }
+  },
+  "text_profiles": {
+    "Описание": {
+      "count_non_null": 8986,
+      "avg_chars": 154.83830402848875,
+      "avg_words": 23.123748052526153,
+      "q95_chars": 563.75
+    }
+  }
+}
