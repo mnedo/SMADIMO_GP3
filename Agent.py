@@ -152,12 +152,20 @@ SYSTEM_PROMPT = """
 
 if __name__ == "__main__":
     agent = create_agent(model=llm, tools=tools, system_prompt=SYSTEM_PROMPT)
-    dataset_path = os.path.abspath("dataset.xlsx")
+
+    data_dir = os.path.join("data", "all_items")
+    file_paths = [
+        os.path.join(data_dir, name).replace("\\", "/")
+        for name in sorted(os.listdir(data_dir))
+        if name.lower().endswith(".xlsx") and name.startswith("all_items")
+    ]
+    if not file_paths:
+        raise FileNotFoundError(f"В папке {data_dir} не найдено файлов all_items*.xlsx")
 
     user_input = (
         f"""
         Выполни полный pipeline ML-инженера. Обучи модель для предсказания цены. Шаги к выполнению: 
-        Вначале load_data: input_str = {{"file_paths": ["{dataset_path.replace(chr(92), "/")}"]}}.      
+        Вначале load_data: input_str = {json.dumps({"file_paths": file_paths}, ensure_ascii=False)}.
         Дальше run_eda, preprocess_decision, preprocess_execution, feature_engineering,
         model_selection, train_models, tune_hyperparams, compare_with_previous, save_best_model; remember_step после шагов."""
     )
