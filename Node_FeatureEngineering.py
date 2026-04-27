@@ -75,15 +75,18 @@ def feature_engineering(input_str: str, llm=None) -> dict:
                 content=(
                     f'{context}\n\nEDA report (если есть): {json.dumps(eda_report, ensure_ascii=False) if eda_report else "not_provided"}\n\n'
                     'Используй доступный EDA-контекст и самостоятельно выбери разумные преобразования для создания новых признаков в df. '
-                    'Сфокусируйся на качестве для регрессии, устойчивости к пропускам и аккуратной работе с текстовыми признаками. '
+                    'Сфокусируйся на качестве для регрессии через Valivla Ml алгоритмы, устойчивости к пропускам и аккуратной работе с текстовыми признаками. '
                     'Используй только колонки, которые реально есть в df. Не используй цену для построения признаков. '
                     'Сгенерируй не меньше 3 новых признаков.'
                 ))
         ])
 
         original_columns = list(df.columns)
-        print(response.content)
-        exec(response.content)
+        # print(response.content)
+        local_vars = {'df': df, 'pd': pd}
+        exec(response.content, local_vars)
+        df = local_vars['df']
+        df = df.fillna(0)
         new_columns = [col for col in df.columns if col not in original_columns]
 
         output_path = os.path.join(ARTIFACT_DIR, "featured_dataset.csv")

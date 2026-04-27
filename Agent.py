@@ -15,12 +15,13 @@ from Node_TrainModels import train_models
 from Node_TuneHyperparams import tune_hyperparams
 from Node_Memory import remember_step, get_session_memory, save_best_model, load_previous_best, compare_with_previous, set_pipeline_state
 
-model_i = 1
+model_i = 0
 MODEL_NAME = [
-    "deepseek/deepseek-chat-v3-0324",
+    "deepseek/deepseek-v4-pro",
     "openai/gpt-5-mini",
-    "anthropic/claude-sonnet-4.6",
-    "google/gemini-3.1-pro-preview",
+    "anthropic/claude-haiku-4.5",
+    "google/gemini-3-flash-preview",
+    "google/gemini-3.1-pro-preview", # sota for agent at ok-cost
 ][model_i]
 
 with open("config.json", encoding="utf-8") as f:

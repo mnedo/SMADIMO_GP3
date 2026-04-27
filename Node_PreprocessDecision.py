@@ -114,7 +114,15 @@ def preprocess_decision(input_data, llm):
             content = content.replace("```", "").strip()
 
         plan = json.loads(content)
-        set_pipeline_state(preprocess_plan=plan)
+
+        ARTIFACT_DIR = "artifacts"
+        os.makedirs(ARTIFACT_DIR, exist_ok=True)
+        preprocess_plan_path = os.path.join(ARTIFACT_DIR, "preprocess_plan.json")
+
+        with open(preprocess_plan_path, "w", encoding="utf-8") as f:
+            json.dump(plan, f, ensure_ascii = False, indent=2)
+
+        set_pipeline_state(preprocess_plan = plan, preprocess_plan_path = preprocess_plan_path)
         return json.dumps(plan, ensure_ascii=False, indent=2)
 
     except Exception as e:
