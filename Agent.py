@@ -15,11 +15,10 @@ from Node_TrainModels import train_models
 from Node_TuneHyperparams import tune_hyperparams
 from Node_Memory import remember_step, get_session_memory, save_best_model, load_previous_best, compare_with_previous, set_pipeline_state
 
-model_i = 0
+model_i = 1
 MODEL_NAME = [
-    "deepseek/deepseek-v4-pro",
+    "deepseek/deepseek-chat-v3-0324",
     "openai/gpt-5-mini",
-    "anthropic/claude-haiku-4.5",
     "google/gemini-3-flash-preview",
     "google/gemini-3.1-pro-preview", # sota for agent at ok-cost
 ][model_i]

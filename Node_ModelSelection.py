@@ -36,7 +36,7 @@ def model_selection(input_str: str, llm=None) -> dict:
 
         response = llm.invoke([
             SystemMessage(
-                content='Ты эксперт в области машинного обучения. Отвечай только валидным JSON без пояснений и без ```json```. Формат ответа: [{"model": "НазваниеМодели", "reason": "обоснование"}]. Выбирай только из этих моделей: Ridge, Lasso, RandomForestRegressor, GradientBoostingRegressor.'),
+                content='Ты эксперт в области машинного обучения. Отвечай только валидным JSON без пояснений и без ```json```. Формат ответа: [{"model": "НазваниеМодели", "reason": "обоснование"}]. Выбирай только из этих моделей: Ridge, Lasso, RandomForestRegressor, GradientBoostingRegressor, .'),
             HumanMessage(
                 content=f'{context}\n\nВыбери 2-3 наиболее подходящие модели для этой задачи с обоснованием.')
         ])
