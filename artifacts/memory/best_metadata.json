@@ -1,0 +1,40 @@
+{
+  "model_name": "RandomForestRegressor",
+  "metrics": {
+    "mae": 6420.923803797189,
+    "r2": 0.5169595005257601
+  },
+  "model_params": {
+    "n_estimators": 600,
+    "min_samples_split": 6,
+    "min_samples_leaf": 1,
+    "bootstrap": false,
+    "criterion": "absolute_error",
+    "max_depth": null,
+    "max_features": "sqrt"
+  },
+  "dataset_shape": null,
+  "llm_model": "openai/gpt-5-mini",
+  "prompt_style": "Few-shot",
+  "llm_params": {
+    "model": "openai/gpt-5-mini",
+    "temperature": 0.5,
+    "top_p": 0.9,
+    "max_tokens": 50000
+  },
+  "llm_usage": {
+    "total_calls": 6,
+    "failed_calls": 1,
+    "error_rate": 0.1667,
+    "tokens": {
+      "prompt": 9960,
+      "completion": 14197,
+      "total": 24157
+    },
+    "total_cost": 0.029955
+  },
+  "session_id": "42148ce2-f76a-4c7b-970e-3d50302db63e",
+  "saved_at": "2026-04-28T03:29:30",
+  "verdict": "improved",
+  "model_pickle_path": "artifacts\\memory\\best_model.pkl"
+}

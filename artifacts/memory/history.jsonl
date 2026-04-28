@@ -1,0 +1,1 @@
+{"model_name": "GradientBoostingRegressor_tuned", "metrics": {"mae": 26591.0745, "r2": 0.31}, "best_params": null, "dataset_shape": null, "llm_model": "openai/gpt-5-mini", "session_id": "d99fdbe2-ef62-4726-a226-4e460f53680d", "saved_at": "2026-04-27T15:02:17", "verdict": "first_run", "model_pickle_path": "artifacts/memory/best_model.pkl", "was_overwritten": true}

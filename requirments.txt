@@ -1,0 +1,8 @@
+langchain-google-genai
+langchain-groq
+openpyxl
+langchain
+pandas
+numpy
+scikit-learn
+optuna
