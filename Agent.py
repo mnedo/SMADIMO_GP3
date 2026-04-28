@@ -24,9 +24,9 @@ from Node_Memory import (
     get_llm_usage,
 )
 
-model_i = 0
+model_i = 1
 MODEL_NAME = [
-    "deepseek/deepseek-chat-v3-0324",
+    "qwen/qwen3.6-flash",
     "openai/gpt-5-mini",
     "google/gemini-3-flash-preview",
     "google/gemini-3.1-pro-preview", # sota for agent at ok-cost
@@ -54,7 +54,7 @@ with open("config.json", encoding="utf-8") as f:
 
 LLM_PARAMS = {
     "model": MODEL_NAME,
-    "temperature": 0.3,
+    "temperature": 0.5,
     "top_p": 0.9,
     "max_tokens": 50_000,
 }

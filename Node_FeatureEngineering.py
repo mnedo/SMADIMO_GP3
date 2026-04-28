@@ -71,7 +71,7 @@ DataFrame `df` уже загружен. Колонки и типы:
 EDA-отчёт:
 {json.dumps(eda_report, ensure_ascii=False, indent=2) if eda_report is not None else "не передан"}
 
-Используй только pandas. Только Python-код, без пояснений и без блока ```python.
+Используй только pandas. Создавать новые признаки из Таргет-стобца запрещено! Таргет можно только преобразовывать. Время выполнение кода не более 2 минут. Не раздувай размерность датасета! Только Python-код, без пояснений и без блока ```python.
 """.strip()
 
         response = llm.invoke([{"role": "user", "content": USER_PROMPT}])
